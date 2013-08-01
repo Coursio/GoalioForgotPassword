@@ -90,13 +90,14 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         $this->getEventManager()->trigger(__FUNCTION__, $this, array('record' => $model, 'userId' => $userId));
         $this->getPasswordMapper()->persist($model);
 
+        $config = $this->getServiceManager()->get('config');
         $urlPlugin = $this->getServiceManager()->get('ControllerPluginManager')->get('url');
         $url = $urlPlugin->fromRoute('zfcuser/resetpassword', array('userId' => $userId, 'token' => $model->getRequestKey()));
 
         $this->getServiceManager()->get('CioBase\Service\Resque')->addJob('PasswordRestore_Job', array
         (
             'email' => $email,
-            'link'  => $url,
+            'link'  => '//' . $config['coursio']['app_domain'] . $url,
         ));
     }
 
