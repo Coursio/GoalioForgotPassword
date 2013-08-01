@@ -2,22 +2,16 @@
 
 namespace GoalioForgotPassword\Service;
 
+use CioBase\Model\MandrillTransport;
 use Zend\Mail\Transport\TransportInterface;
-
 use ZfcUser\Options\PasswordOptionsInterface;
-
 use GoalioForgotPassword\Options\ForgotOptionsInterface;
-
 use Zend\ServiceManager\ServiceManager;
-
 use Zend\ServiceManager\ServiceManagerAwareInterface;
-
 use ZfcUser\Mapper\UserInterface as UserMapperInterface;
 use GoalioForgotPassword\Mapper\Password as PasswordMapper;
-
 use Zend\Crypt\Password\Bcrypt;
 use Zend\Form\Form;
-
 use ZfcBase\EventManager\EventProvider;
 
 class Password extends EventProvider implements ServiceManagerAwareInterface
@@ -32,36 +26,60 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
     protected $zfcUserOptions;
     protected $emailRenderer;
     protected $emailTransport;
+    protected $serviceManager;
 
+    /**
+     * @param $token
+     * @return mixed
+     */
     public function findByRequestKey($token)
     {
         return $this->getPasswordMapper()->findByRequestKey($token);
     }
 
+    /**
+     * @param $email
+     * @return mixed
+     */
     public function findByEmail($email)
     {
         return $this->getPasswordMapper()->findByEmail($email);
     }
 
+    /**
+     * @return mixed
+     */
     public function cleanExpiredForgotRequests()
     {
         // TODO: reset expiry time from options
         return $this->getPasswordMapper()->cleanExpiredForgotRequests();
     }
 
+    /**
+     * @param $userId
+     * @return mixed
+     */
     public function cleanPriorForgotRequests($userId)
     {
         return $this->getPasswordMapper()->cleanPriorForgotRequests($userId);
     }
 
+    /**
+     * @param $m
+     * @return mixed
+     */
     public function remove($m)
     {
         return $this->getPasswordMapper()->remove($m);
     }
 
+    /**
+     * @param $userId
+     * @param $email
+     */
     public function sendProcessForgotRequest($userId, $email)
     {
-        //Invalidate all prior request for a new password
+        // Invalidate all prior request for a new password
         $this->cleanPriorForgotRequests($userId);
 
         $class = $this->getOptions()->getPasswordEntityClass();
@@ -72,22 +90,22 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         $this->getEventManager()->trigger(__FUNCTION__, $this, array('record' => $model, 'userId' => $userId));
         $this->getPasswordMapper()->persist($model);
 
-        $this->sendForgotEmailMessage($email, $model);
+        $urlPlugin = $this->getServiceManager()->get('ControllerPluginManager')->get('url');
+        $url = $urlPlugin->fromRoute('zfcuser/resetpassword', array('userId' => $userId, 'token' => $model->getRequestKey()));
+
+        $this->getServiceManager()->get('CioBase\Service\Resque')->addJob('PasswordRestore_Job', array
+        (
+            'email' => $email,
+            'link'  => $url,
+        ));
     }
 
-    public function sendForgotEmailMessage($to, $model)
-    {
-        $mailService = $this->getServiceManager()->get('goaliomailservice_message');
-
-        $from = $this->getOptions()->getEmailFromAddress();
-        $subject = $this->getOptions()->getResetEmailSubjectLine();
-        $template = $this->getOptions()->getResetEmailTemplate();
-
-        $message = $mailService->createTextMessage($from, $to, $subject, $template, array('record' => $model));
-
-        $mailService->send($message);
-    }
-
+    /**
+     * @param $password
+     * @param $user
+     * @param array $data
+     * @return bool
+     */
     public function resetPassword($password, $user, array $data)
     {
         $newPass = $data['newCredential'];
@@ -106,11 +124,18 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         return true;
     }
 
+    /**
+     * @return mixed
+     */
     public function getServiceManager()
     {
         return $this->serviceManager;
     }
 
+    /**
+     * @param ServiceManager $serviceManager
+     * @return $this
+     */
     public function setServiceManager(ServiceManager $serviceManager)
     {
         $this->serviceManager = $serviceManager;
@@ -142,12 +167,19 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         return $this;
     }
 
+    /**
+     * @param PasswordMapper $passwordMapper
+     * @return $this
+     */
     public function setPasswordMapper(PasswordMapper $passwordMapper)
     {
         $this->passwordMapper = $passwordMapper;
         return $this;
     }
 
+    /**
+     * @return ModelMapper
+     */
     public function getPasswordMapper()
     {
         if (null === $this->passwordMapper) {
@@ -157,12 +189,19 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         return $this->passwordMapper;
     }
 
+    /**
+     * @param ViewRenderer $emailRenderer
+     * @return $this
+     */
     public function setMessageRenderer(ViewRenderer $emailRenderer)
     {
         $this->emailRenderer = $emailRenderer;
         return $this;
     }
 
+    /**
+     * @return TransportInterface
+     */
     public function getMessageTransport()
     {
         if (!$this->emailTransport instanceof TransportInterface) {
@@ -172,12 +211,19 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         return $this->emailTransport;
     }
 
+    /**
+     * @param EmailTransport $emailTransport
+     * @return $this
+     */
     public function setMessageTransport(EmailTransport $emailTransport)
     {
         $this->emailTransport = $emailTransport;
         return $this;
     }
 
+    /**
+     * @return ForgotOptionsInterface
+     */
     public function getOptions()
     {
         if (!$this->options instanceof ForgotOptionsInterface) {
@@ -186,12 +232,19 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         return $this->options;
     }
 
+    /**
+     * @param ForgotOptionsInterface $opt
+     * @return $this
+     */
     public function setOptions(ForgotOptionsInterface $opt)
     {
         $this->options = $opt;
         return $this;
     }
 
+    /**
+     * @return PasswordOptionsInterface
+     */
     public function getZfcUserOptions()
     {
         if (!$this->zfcUserOptions instanceof PasswordOptionsInterface) {
@@ -200,6 +253,10 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
         return $this->zfcUserOptions;
     }
 
+    /**
+     * @param PasswordOptionsInterface $zfcUserOptions
+     * @return $this
+     */
     public function setZfcUserOptions(PasswordOptionsInterface $zfcUserOptions)
     {
         $this->zfcUserOptions = $zfcUserOptions;
