@@ -1,5 +1,5 @@
 {
-    "name": "goalio/goalio-forgotpassword",
+    "name": "coursio/goalio-forgotpassword",
     "description": "Adding Forgot Password functionalitiy to ZfcUser",
     "type": "library",
     "keywords": [
