@@ -2,8 +2,6 @@
 
 namespace GoalioForgotPassword\Service;
 
-use CioBase\Model\MandrillTransport;
-use Zend\Mail\Transport\TransportInterface;
 use ZfcUser\Options\PasswordOptionsInterface;
 use GoalioForgotPassword\Options\ForgotOptionsInterface;
 use Zend\ServiceManager\ServiceManager;
@@ -16,16 +14,11 @@ use ZfcBase\EventManager\EventProvider;
 
 class Password extends EventProvider implements ServiceManagerAwareInterface
 {
-    /**
-     * @var ModelMapper
-     */
-    protected $passwordMapper;
-    protected $userMapper;
-    protected $serviceLocator;
     protected $options;
+    protected $userMapper;
+    protected $passwordMapper;
+    protected $serviceLocator;
     protected $zfcUserOptions;
-    protected $emailRenderer;
-    protected $emailTransport;
     protected $serviceManager;
 
     /**
@@ -150,7 +143,8 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
      */
     public function getUserMapper()
     {
-        if (null === $this->userMapper) {
+        if (null === $this->userMapper)
+        {
             $this->userMapper = $this->getServiceManager()->get('zfcuser_user_mapper');
         }
         return $this->userMapper;
@@ -179,11 +173,12 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
     }
 
     /**
-     * @return ModelMapper
+     * @return mixed
      */
     public function getPasswordMapper()
     {
-        if (null === $this->passwordMapper) {
+        if (null === $this->passwordMapper)
+        {
             $this->setPasswordMapper($this->getServiceManager()->get('goalioforgotpassword_password_mapper'));
         }
 
@@ -191,43 +186,12 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
     }
 
     /**
-     * @param ViewRenderer $emailRenderer
-     * @return $this
-     */
-    public function setMessageRenderer(ViewRenderer $emailRenderer)
-    {
-        $this->emailRenderer = $emailRenderer;
-        return $this;
-    }
-
-    /**
-     * @return TransportInterface
-     */
-    public function getMessageTransport()
-    {
-        if (!$this->emailTransport instanceof TransportInterface) {
-            $this->setEmailTransport($this->getServiceManager()->get('goalioforgotpassword_email_transport'));
-        }
-
-        return $this->emailTransport;
-    }
-
-    /**
-     * @param EmailTransport $emailTransport
-     * @return $this
-     */
-    public function setMessageTransport(EmailTransport $emailTransport)
-    {
-        $this->emailTransport = $emailTransport;
-        return $this;
-    }
-
-    /**
      * @return ForgotOptionsInterface
      */
     public function getOptions()
     {
-        if (!$this->options instanceof ForgotOptionsInterface) {
+        if (!$this->options instanceof ForgotOptionsInterface)
+        {
             $this->setOptions($this->getServiceManager()->get('goalioforgotpassword_module_options'));
         }
         return $this->options;
@@ -248,7 +212,8 @@ class Password extends EventProvider implements ServiceManagerAwareInterface
      */
     public function getZfcUserOptions()
     {
-        if (!$this->zfcUserOptions instanceof PasswordOptionsInterface) {
+        if (!$this->zfcUserOptions instanceof PasswordOptionsInterface)
+        {
             $this->setZfcUserOptions($this->getServiceManager()->get('zfcuser_module_options'));
         }
         return $this->zfcUserOptions;

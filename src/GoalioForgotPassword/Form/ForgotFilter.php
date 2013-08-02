@@ -7,20 +7,23 @@ use GoalioForgotPassword\Options\ForgotOptionsInterface;
 
 class ForgotFilter extends InputFilter
 {
-    /**
-     * @var ForgotOptionsInterface
-     */
     protected $options;
 
-    public function __construct( ForgotOptionsInterface $options)
+    /**
+     * @param ForgotOptionsInterface $options
+     */
+    public function __construct(ForgotOptionsInterface $options)
     {
         $this->setOptions($options);
 
-        $this->add(array(
+        $this->add(array
+        (
             'name'       => 'email',
             'required'   => true,
-            'validators' => array(
-                array(
+            'validators' => array
+            (
+                array
+                (
                     'name' => 'EmailAddress'
                 ),
             ),
@@ -30,7 +33,7 @@ class ForgotFilter extends InputFilter
     /**
      * set options
      *
-     * @param RegistrationOptionsInterface $options
+     * @param ForgotOptionsInterface $options
      */
     public function setOptions(ForgotOptionsInterface $options)
     {
@@ -40,11 +43,10 @@ class ForgotFilter extends InputFilter
     /**
      * get options
      *
-     * @return RegistrationOptionsInterface
+     * @return mixed
      */
     public function getOptions()
     {
         return $this->options;
     }
-
 }
