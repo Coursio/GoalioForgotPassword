@@ -1,5 +1,14 @@
 <h1>Forgot your password?</h1>
 
-<p>A reminder has been sent to your e-mail address <?php echo $this->escapeHtml($this->email); ?></p>
+<?php
+if (!empty ($this->message))
+{
+    echo '<p>' . $this->message . '</p>';
+}
+else
+{
+    echo '<p>A reminder has been sent to your e-mail address ' . $this->escapeHtml($this->email) . '</p>';
+}
+?>
 
 <a href="<?php echo $this->url('zfcuser/login') ?>">Back to login?</a>
