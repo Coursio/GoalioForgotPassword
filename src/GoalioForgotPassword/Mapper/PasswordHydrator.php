@@ -10,9 +10,9 @@ class PasswordHydrator extends ClassMethods
     /**
      * Extract values from an object
      *
-     * @param  object $object
+     * @param object $object
      * @return array
-     * @throws Exception\InvalidArgumentException
+     * @throws \InvalidArgumentException
      */
     public function extract($object)
     {
@@ -30,10 +30,10 @@ class PasswordHydrator extends ClassMethods
     /**
      * Hydrate $object with the provided $data.
      *
-     * @param  array $data
-     * @param  object $object
-     * @return UserInterface
-     * @throws Exception\InvalidArgumentException
+     * @param array $data
+     * @param object $object
+     * @return object
+     * @throws \InvalidArgumentException
      */
     public function hydrate(array $data, $object)
     {
